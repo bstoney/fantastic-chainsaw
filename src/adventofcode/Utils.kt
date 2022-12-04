@@ -7,8 +7,12 @@ import java.security.MessageDigest
 /**
  * Reads lines from the given input txt file.
  */
-fun readInput(name: String) = File("input", "$name.txt")
-    .readLines()
+fun readInput(name: String): List<String> = with(File("input", "$name.txt")) {
+    return when {
+        exists() -> readLines()
+        else -> throw IllegalStateException("Missing input file: input/$name.txt")
+    }
+}
 
 /**
  * Converts string to adventofcode.md5 hash.
