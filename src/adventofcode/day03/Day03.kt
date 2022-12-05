@@ -8,7 +8,7 @@ fun main() {
 
 object Solution : AdventOfCodeSolution(true) {
     fun solve() {
-        solve(3, 157)
+        solve(3, 157, 70)
     }
 
     override fun part1(input: List<String>): Int {
@@ -16,6 +16,23 @@ object Solution : AdventOfCodeSolution(true) {
             .map(Item::priority)
             .sum()
     }
+
+    override fun part2(input: List<String>): Int {
+        return getGroupBadges(input)
+            .map(Item::priority)
+            .sum()
+    }
+
+    private fun getGroupBadges(input: List<String>) = getRucksacks(input)
+        .chunked(3)
+        .mapIndexed { index, rucksacks ->
+            val badge = rucksacks.map(Rucksack::items)
+                .reduce { acc, items -> acc.intersect(items) }
+                .single()
+            debug("Group $index -> $badge priority: ${badge.priority()}")
+
+            badge
+        }
 
     private fun getIncorrectItems(input: List<String>) = getRucksacks(input)
         .mapIndexed { index, rucksack ->
@@ -35,6 +52,7 @@ object Solution : AdventOfCodeSolution(true) {
 
     data class Rucksack(val compartment1: Set<Item>, val compartment2: Set<Item>) {
         fun sharedItem() = compartment1.intersect(compartment2).single()
+        fun items() = compartment1 + compartment2
     }
 
     data class Item(val id: Char) {
