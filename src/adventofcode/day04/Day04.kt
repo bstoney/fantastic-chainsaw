@@ -8,14 +8,20 @@ fun main() {
 
 typealias Section = Int
 
-object Solution : AdventOfCodeSolution(true) {
+object Solution : AdventOfCodeSolution() {
     fun solve() {
-        solve(4, 2)
+        solve(4, 2, 4)
     }
 
     override fun part1(input: List<String>): Int {
         return getCleanUpPairs(input)
             .filter { it.assignment1.sections.size == it.sections.size || it.assignment2.sections.size == it.sections.size }
+            .size
+    }
+
+    override fun part2(input: List<String>): Int {
+        return getCleanUpPairs(input)
+            .filter { it.assignment1.sections.size + it.assignment2.sections.size > it.sections.size }
             .size
     }
 
