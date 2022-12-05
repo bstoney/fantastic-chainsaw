@@ -1,6 +1,7 @@
 package adventofcode.day01
 
 import adventofcode.AdventOfCodeSolution
+import adventofcode.split
 
 fun main() {
     Solution.solve()
@@ -30,12 +31,10 @@ object Solution : AdventOfCodeSolution<Int>() {
     private fun getElvesCalories(input: List<String>) = getElvesItemCalories(input).map { it.sum() }
 
     private fun getElvesItemCalories(input: List<String>): Array<List<Int>> {
-        val nextElfItems = input.takeWhile { it.isNotEmpty() }.map { it.toInt() }
-        if (nextElfItems.size < input.size) {
-            return arrayOf(
-                nextElfItems,
-                * getElvesItemCalories(input.subList(nextElfItems.size + 1, input.size))
-            )
+        val (listPart, rest) = input.split { it.isEmpty() }
+        val nextElfItems = listPart.map { it.toInt() }
+        if (rest.isNotEmpty()) {
+            return arrayOf(nextElfItems, * getElvesItemCalories(rest))
         }
 
         return arrayOf(nextElfItems)

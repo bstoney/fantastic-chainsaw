@@ -1,6 +1,8 @@
 package adventofcode
 
-abstract class AdventOfCodeSolution<TSolution>(private val debug: Boolean = false) {
+private const val ENABLE_DEBUG = false
+
+abstract class AdventOfCodeSolution<TSolution>(private val debug: Boolean = ENABLE_DEBUG) {
     open fun part1(input: List<String>): TSolution? {
         return null
     }
