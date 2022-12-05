@@ -12,35 +12,42 @@ typealias Crate = Char
 
 object Solution : AdventOfCodeSolution<String>() {
     override fun solve() {
-        solve(5, "CMZ")
+        solve(5, "CMZ", "MCD")
     }
 
     override fun part1(input: List<String>): String {
-        return getSupplyStacksAndInstructions(input)
+        return getSupplyStacks(input) { count, from, to -> to.addAll(from.remove(count).reversed()) }
             .map { it.getTopCrate() }
             .joinToString("") { it.toString() }
     }
 
-    private fun getSupplyStacksAndInstructions(input: List<String>): List<SupplyStack> {
+    override fun part2(input: List<String>): String {
+        return getSupplyStacks(input) { count, from, to -> to.addAll(from.remove(count)) }
+            .map { it.getTopCrate() }
+            .joinToString("") { it.toString() }
+    }
+
+    private fun getSupplyStacks(
+        input: List<String>,
+        moveBy: (count: Int, from: SupplyStack, to: SupplyStack) -> Unit
+    ): List<SupplyStack> {
         val (supplyStacksInput, instructionsInput) = input.split { it.isEmpty() }
-        val supplyStacks = getSupplyStacks(supplyStacksInput)
+        val supplyStacks = getSupplyStacksInitialState(supplyStacksInput)
 
         debug(supplyStacks)
 
         val regex = Regex("move (\\d+) from (\\w+) to (\\w+)")
-        instructionsInput.map { regex.find(it) }
-            .filterNotNull()
+        instructionsInput.mapNotNull { regex.find(it) }
             .forEach {
                 val (count, from, to) = it.destructured
                 debug("moving $count crate(s) from $from to $to")
-                val removedCrates = supplyStacks[from]!!.remove(count.toInt())
-                supplyStacks[to]!!.addAll(removedCrates.reversed())
+                moveBy(count.toInt(), supplyStacks[from]!!, supplyStacks[to]!!)
             }
 
         return supplyStacks.values.sortedBy(SupplyStack::id)
     }
 
-    private fun getSupplyStacks(supplyStacksInput: List<String>): Map<String, SupplyStack> {
+    private fun getSupplyStacksInitialState(supplyStacksInput: List<String>): Map<String, SupplyStack> {
         val supplyStacks = supplyStacksInput.map { it.chunked(4) { stack -> stack[1] } }
             .reversed()
             .fold(listOf<SupplyStack>()) { acc, chars ->
@@ -57,6 +64,7 @@ object Solution : AdventOfCodeSolution<String>() {
         return supplyStacks
     }
 
+    // TODO refactor to use immutable structure
     class SupplyStack(val id: String, private var crates: List<Crate> = listOf()) {
         fun add(vararg crate: Crate) {
             addAll(crate.asList())
