@@ -1,15 +1,17 @@
 package adventofcode
 
-abstract class AdventOfCodeSolution(private val debug: Boolean = false) {
-    open fun part1(input: List<String>): Int? {
+abstract class AdventOfCodeSolution<TSolution>(private val debug: Boolean = false) {
+    open fun part1(input: List<String>): TSolution? {
         return null
     }
 
-    open fun part2(input: List<String>): Int? {
+    open fun part2(input: List<String>): TSolution? {
         return null
     }
 
-    fun solve(day: Int, expectedPart1Test: Int, expectedPart2Test: Int? = null) {
+    abstract fun solve()
+
+    fun solve(day: Int, expectedPart1Test: TSolution, expectedPart2Test: TSolution? = null) {
         log("Day $day")
 
         val inputFile = "Day" + day.toString().padStart(2, '0')

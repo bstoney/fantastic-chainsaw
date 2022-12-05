@@ -6,8 +6,8 @@ fun main() {
     Solution.solve()
 }
 
-object Solution : AdventOfCodeSolution() {
-    fun solve() {
+object Solution : AdventOfCodeSolution<Int>() {
+    override fun solve() {
         solve(2, 15, 12)
     }
 
@@ -23,7 +23,7 @@ object Solution : AdventOfCodeSolution() {
             .sumOf { it.roundScore() }
     }
 
-    override fun part2(input: List<String>): Int? {
+    override fun part2(input: List<String>): Int {
         return getRounds(input) { opponentPlay: Play, playerInput: String ->
             when (playerInput) {
                 "X" -> opponentPlay.defeats()

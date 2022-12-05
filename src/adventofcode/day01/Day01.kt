@@ -6,8 +6,8 @@ fun main() {
     Solution.solve()
 }
 
-object Solution : AdventOfCodeSolution() {
-    fun solve() {
+object Solution : AdventOfCodeSolution<Int>() {
+    override fun solve() {
         solve(1, 24000, 45000)
     }
 

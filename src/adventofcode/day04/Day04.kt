@@ -8,8 +8,8 @@ fun main() {
 
 typealias Section = Int
 
-object Solution : AdventOfCodeSolution() {
-    fun solve() {
+object Solution : AdventOfCodeSolution<Int>() {
+    override fun solve() {
         solve(4, 2, 4)
     }
 
