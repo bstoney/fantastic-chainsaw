@@ -6,7 +6,7 @@ fun main() {
     Solution.solve()
 }
 
-object Solution : AdventOfCodeSolution(true) {
+object Solution : AdventOfCodeSolution() {
     fun solve() {
         solve(3, 157, 70)
     }
