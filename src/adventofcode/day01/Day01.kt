@@ -30,13 +30,9 @@ object Solution : AdventOfCodeSolution<Int>() {
 
     private fun getElvesCalories(input: List<String>) = getElvesItemCalories(input).map { it.sum() }
 
-    private fun getElvesItemCalories(input: List<String>): Array<List<Int>> {
-        val (listPart, rest) = input.split { it.isEmpty() }
-        val nextElfItems = listPart.map { it.toInt() }
-        if (rest.isNotEmpty()) {
-            return arrayOf(nextElfItems, * getElvesItemCalories(rest))
-        }
-
-        return arrayOf(nextElfItems)
+    private fun getElvesItemCalories(input: List<String>): List<List<Int>> {
+        return input.split { it.isEmpty() }
+            .map { it.map(String::toInt).toList() }
+            .toList()
     }
 }

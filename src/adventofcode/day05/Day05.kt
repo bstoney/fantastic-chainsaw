@@ -1,7 +1,6 @@
 package adventofcode.day05
 
 import adventofcode.AdventOfCodeSolution
-import adventofcode.split
 import adventofcode.splitAt
 
 fun main() {
@@ -31,7 +30,7 @@ object Solution : AdventOfCodeSolution<String>() {
         input: List<String>,
         moveBy: (count: Int, from: SupplyStack, to: SupplyStack) -> Unit
     ): List<SupplyStack> {
-        val (supplyStacksInput, instructionsInput) = input.split { it.isEmpty() }
+        val (supplyStacksInput, instructionsInput) = input.splitAt { it.isEmpty() }
         val supplyStacks = getSupplyStacksInitialState(supplyStacksInput)
 
         debug(supplyStacks)
