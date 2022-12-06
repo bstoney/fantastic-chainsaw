@@ -34,8 +34,8 @@ fun <E> List<E>.splitAt(index: Int): Pair<List<E>, List<E>> {
     return Pair(this.subList(0, index), this.subList(index, this.size))
 }
 
-fun <E> List<E>.split(predicate: (E) -> Boolean): Sequence<List<E>> {
-    val iterator = this.iterator()
+fun <E> Iterable<E>.split(predicate: (E) -> Boolean): Sequence<List<E>> {
+    val iterator = iterator()
     return generateSequence {
         while (iterator.hasNext()) {
             val part = arrayListOf<E>()
@@ -53,3 +53,24 @@ fun <E> List<E>.split(predicate: (E) -> Boolean): Sequence<List<E>> {
         null
     }
 }
+
+fun <T, R, V> Iterable<T>.zipAll(other: Iterable<R>, transform: (T?, R?) -> V): Sequence<V> {
+    val first = iterator()
+    val second = other.iterator()
+    return generateSequence {
+        while (first.hasNext() || second.hasNext()) {
+            return@generateSequence transform(
+                first.hasNext().iif({ first.next() }, { null }),
+                second.hasNext().iif({ second.next() }, { null })
+            )
+        }
+        null
+    }
+}
+
+fun <T> Boolean.iif(supplyTrue: () -> T, supplyFalse: () -> T): T =
+    if (this) {
+        supplyTrue()
+    } else {
+        supplyFalse()
+    }

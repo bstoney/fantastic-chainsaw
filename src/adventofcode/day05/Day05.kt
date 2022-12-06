@@ -1,7 +1,6 @@
 package adventofcode.day05
 
-import adventofcode.AdventOfCodeSolution
-import adventofcode.splitAt
+import adventofcode.*
 
 fun main() {
     Solution.solve()
@@ -15,20 +14,20 @@ object Solution : AdventOfCodeSolution<String>() {
     }
 
     override fun part1(input: List<String>): String {
-        return getSupplyStacks(input) { count, from, to -> to.addAll(from.remove(count).reversed()) }
+        return getSupplyStacks(input) { crates -> crates.reversed() }
             .map { it.getTopCrate() }
             .joinToString("") { it.toString() }
     }
 
     override fun part2(input: List<String>): String {
-        return getSupplyStacks(input) { count, from, to -> to.addAll(from.remove(count)) }
+        return getSupplyStacks(input) { crates -> crates }
             .map { it.getTopCrate() }
             .joinToString("") { it.toString() }
     }
 
     private fun getSupplyStacks(
         input: List<String>,
-        moveBy: (count: Int, from: SupplyStack, to: SupplyStack) -> Unit
+        moveBy: (List<Crate>) -> List<Crate>
     ): List<SupplyStack> {
         val (supplyStacksInput, instructionsInput) = input.splitAt { it.isEmpty() }
         val supplyStacks = getSupplyStacksInitialState(supplyStacksInput)
@@ -36,14 +35,28 @@ object Solution : AdventOfCodeSolution<String>() {
         debug(supplyStacks)
 
         val regex = Regex("move (\\d+) from (\\w+) to (\\w+)")
-        instructionsInput.mapNotNull { regex.find(it) }
-            .forEach {
+        return instructionsInput.mapNotNull { regex.find(it) }
+            .map {
                 val (count, from, to) = it.destructured
-                debug("moving $count crate(s) from $from to $to")
-                moveBy(count.toInt(), supplyStacks[from]!!, supplyStacks[to]!!)
+                Instruction(count.toInt(), from, to)
             }
+            .fold(supplyStacks.values) { stacks, instruction ->
+                debug(instruction)
+                var movedCrates: List<Crate> = emptyList()
+                stacks.map {
+                    when (it.id) {
+                        instruction.fromId -> {
+                            movedCrates = it.getTopCrates(instruction.count)
+                            ({ it.removeCrates(instruction.count) })
+                        }
 
-        return supplyStacks.values.sortedBy(SupplyStack::id)
+                        instruction.toId -> ({ it.addCrates(moveBy(movedCrates)) })
+                        else -> ({ it })
+                    }
+                }
+                    .map { it() }
+            }
+            .sortedBy(SupplyStack::id)
     }
 
     private fun getSupplyStacksInitialState(supplyStacksInput: List<String>): Map<String, SupplyStack> {
@@ -51,34 +64,35 @@ object Solution : AdventOfCodeSolution<String>() {
             .reversed()
             .fold(listOf<SupplyStack>()) { acc, chars ->
                 if (acc.isEmpty()) {
-                    chars.map { SupplyStack(it.toString()) }
+                    chars.map { SupplyStack(it.toString(), listOf()) }
                 } else {
-                    chars.mapIndexed { index, c -> Pair(index, c) }
-                        .filter { it.second != ' ' }
-                        .forEach { (index, c) -> acc[index].add(c) }
-                    acc
+                    acc.zipAll(chars) { a, b ->
+                        if (b != null && b != ' ') {
+                            SupplyStack(a!!.id, a.crates + b)
+                        } else {
+                            a!!
+                        }
+                    }
+                        .toList()
                 }
             }
             .fold(mapOf<String, SupplyStack>()) { acc, supplyStack -> acc + Pair(supplyStack.id, supplyStack) }
         return supplyStacks
     }
 
-    // TODO refactor to use immutable structure
-    class SupplyStack(val id: String, private var crates: List<Crate> = listOf()) {
-        fun add(vararg crate: Crate) {
-            addAll(crate.asList())
-        }
-
-        fun addAll(toAdd: List<Crate>) {
-            crates = crates + toAdd
-        }
-
-        fun remove(count: Int): List<Crate> {
-            val (remaining, removed) = crates.splitAt(crates.size - count)
-            crates = remaining
-            return removed
-        }
-
+    data class SupplyStack(val id: String, val crates: List<Crate>) {
         fun getTopCrate() = crates.last()
+
+        fun getTopCrates(count: Int) = crates.takeLast(count)
+
+        fun removeCrates(count: Int) = SupplyStack(id, crates.subList(0, crates.size - count))
+
+        fun addCrates(crates: List<Crate>) = SupplyStack(id, this.crates + crates)
+    }
+
+    data class Instruction(val count: Int, val fromId: String, val toId: String) {
+        override fun toString(): String {
+            return "moving $count crate(s) from $fromId to $toId"
+        }
     }
 }
