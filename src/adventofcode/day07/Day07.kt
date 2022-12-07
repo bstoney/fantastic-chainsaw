@@ -9,7 +9,7 @@ fun main() {
 
 object Solution : AdventOfCodeSolution<Int>() {
     override fun solve() {
-        solve(7, 95437)
+        solve(7, 95437, 24933642)
     }
 
     override fun part1(input: List<String>): Int {
@@ -20,6 +20,25 @@ object Solution : AdventOfCodeSolution<Int>() {
                 it
             }
             .sumOf { it.second }
+    }
+
+    override fun part2(input: List<String>): Int {
+        val directorySizes = getDirectorySizes(input)
+        val availableSpace = 70000000 - directorySizes.maxOf { it.second }
+        debug("Available space: $availableSpace")
+        val requiredSpace = 30000000 - availableSpace
+        debug("Required space: $requiredSpace")
+
+        val intList = directorySizes
+            .sortedBy { it.second }
+            .filter { it.second >= requiredSpace }
+            .map {
+                debug(it)
+                it
+            }
+            .map { it.second }
+        return intList
+            .first()
     }
 
     private fun getDirectorySizes(input: List<String>): List<Pair<String, Int>> = getDirectories(input)
