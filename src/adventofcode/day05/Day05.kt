@@ -40,8 +40,8 @@ object Solution : AdventOfCodeSolution<String>() {
                 val (count, from, to) = it.destructured
                 Instruction(count.toInt(), from, to)
             }
+            .peek { debug(it) }
             .fold(supplyStacks.values) { stacks, instruction ->
-                debug(instruction)
                 var movedCrates: List<Crate> = emptyList()
                 stacks.map {
                     when (it.id) {

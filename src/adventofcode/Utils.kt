@@ -74,3 +74,17 @@ fun <T> Boolean.iif(supplyTrue: () -> T, supplyFalse: () -> T): T =
     } else {
         supplyFalse()
     }
+
+fun <T> Sequence<T>.peek(action: (T) -> Unit): Sequence<T> {
+    return map {
+        action(it)
+        it
+    }
+}
+
+fun <T, R : Iterable<T>> R.peek(action: (T) -> Unit): Iterable<T> {
+    return map {
+        action(it)
+        it
+    }
+}

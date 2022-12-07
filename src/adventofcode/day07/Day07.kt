@@ -1,7 +1,8 @@
 package adventofcode.day07
 
 import adventofcode.AdventOfCodeSolution
-import java.util.*
+import adventofcode.peek
+import java.util.Stack
 
 fun main() {
     Solution.solve()
@@ -13,59 +14,50 @@ object Solution : AdventOfCodeSolution<Int>() {
     }
 
     override fun part1(input: List<String>): Int {
-        return getDirectorySizes(input)
-            .filter { it.second <= 100000 }
-            .map {
-                debug(it)
-                it
-            }
-            .sumOf { it.second }
+        return getDirectories(input)
+            .filter { it.getSize() <= 100000 }
+            .peek { debug(it) }
+            .sumOf { it.getSize() }
     }
 
     override fun part2(input: List<String>): Int {
-        val directorySizes = getDirectorySizes(input)
-        val availableSpace = 70000000 - directorySizes.maxOf { it.second }
+        val directorySizes = getDirectories(input)
+        val availableSpace = 70000000 - directorySizes.maxOf { it.getSize() }
         debug("Available space: $availableSpace")
         val requiredSpace = 30000000 - availableSpace
         debug("Required space: $requiredSpace")
 
-        val intList = directorySizes
-            .sortedBy { it.second }
-            .filter { it.second >= requiredSpace }
-            .map {
-                debug(it)
-                it
-            }
-            .map { it.second }
-        return intList
+        return directorySizes
+            .asSequence()
+            .sortedBy { it.getSize() }
+            .filter { it.getSize() >= requiredSpace }
+            .peek { debug(it) }
+            .map { it.getSize() }
             .first()
     }
 
-    private fun getDirectorySizes(input: List<String>): List<Pair<String, Int>> = getDirectories(input)
-        .map { Pair(it.name, it.calculateSize()) }
-
     private fun getDirectories(input: List<String>): List<Directory> {
         val iterator = input.iterator()
-        var lineNumber = 0
         val dirs = mutableMapOf<String, Directory>()
-        val getDir = { path: String ->
+        val getDir = { path: String, parent: Directory? ->
             dirs[path] ?: run {
-                val dir = Directory(path)
+                val dir = Directory(path, parent)
                 dirs.putIfAbsent(path, dir)
                 dir
             }
         }
+
         val currentPath = Stack<Directory>()
-        currentPath.push(getDir("/"))
+        val root = getDir("/", null)
+        currentPath.push(root)
 
         while (iterator.hasNext()) {
-            lineNumber++
             with(iterator.next()) {
                 val currentDir = currentPath.peek()
                 when {
                     equals("$ cd /") -> {
                         currentPath.empty()
-                        currentPath.push(getDir("/"))
+                        currentPath.push(root)
                     }
 
                     equals("$ cd ..") -> {
@@ -73,12 +65,12 @@ object Solution : AdventOfCodeSolution<Int>() {
                     }
 
                     startsWith("$ cd ") -> {
-                        currentPath.push(getDir("${currentDir.name}/${this.substring(5)}"))
+                        currentPath.push(getDir("${currentDir.name}/${this.substring(5)}", currentDir))
                     }
 
                     equals("$ ls") -> {}
                     startsWith("dir ") -> {
-                        currentDir.addDir(getDir("${currentDir.name}/${this.substring(4)}"))
+                        currentDir.addDir(getDir("${currentDir.name}/${this.substring(4)}", currentDir))
                     }
 
                     else -> {
@@ -94,17 +86,33 @@ object Solution : AdventOfCodeSolution<Int>() {
 
     class Directory(
         val name: String,
+        private val parent: Directory?,
         private val dirs: ArrayList<Directory> = arrayListOf(),
         private val files: MutableMap<String, Int> = mutableMapOf()
     ) {
+        private var size: Int? = null
+
         fun addDir(dir: Directory) {
+            contentChanged()
             dirs.add(dir)
         }
 
         fun addFile(name: String, size: Int) {
+            contentChanged()
             files[name] = size
         }
 
-        fun calculateSize(): Int = dirs.sumOf { it.calculateSize() } + files.values.sum()
+        fun getSize(): Int {
+            return size ?: run {
+                val calculatedSize = dirs.sumOf { it.getSize() } + files.values.sum()
+                size = calculatedSize
+                calculatedSize
+            }
+        }
+
+        private fun contentChanged() {
+            size = null
+            parent?.contentChanged()
+        }
     }
 }
