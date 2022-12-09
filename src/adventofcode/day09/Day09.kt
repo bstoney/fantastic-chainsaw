@@ -9,8 +9,10 @@ fun main() {
 
 object Solution : AdventOfCodeSolution<Int>() {
     override fun solve() {
-        solve(9, 13)
+        solve(9, 13, 36)
     }
+
+    override fun part1TestFile(inputFile: String) = "${inputFile}_test-part1"
 
     override fun part1(input: List<String>): Int {
         return getTailLocations(input)
@@ -18,17 +20,36 @@ object Solution : AdventOfCodeSolution<Int>() {
             .size
     }
 
-    private fun getTailLocations(input: List<String>): List<TailLocation> {
-        return input.map { it.split(" ", limit = 2) }
-            .flatMap { (direction, distance) ->
-                (1..distance.toInt())
-                    .map { Movement(Direction.valueOf(direction)) }
-            }
-            .runningFold(HeadLocation(0, 0)) { head, move -> head.move(move) }
-            .runningFold(TailLocation(0, 0)) { tail, head -> tail.follow(head) }
+    override fun part2TestFile(inputFile: String) = "${inputFile}_test-part2"
+
+    override fun part2(input: List<String>): Int {
+        return getTailLocations(input, 9)
+            .toSet()
+            .size
     }
 
-    data class HeadLocation(val x: Int, val y: Int) {
+    private fun getTailLocations(input: List<String>, followingKnots: Int = 1): Sequence<Location> {
+        val headSequence: Sequence<Location> = getMovements(input)
+            .runningFold(HeadLocation(0, 0)) { head, move -> head.move(move) }
+        return (0 until followingKnots)
+            .fold(headSequence) { s, _ ->
+                s.runningFold(KnotLocation(0, 0)) { tail, head -> tail.follow(head) }
+            }
+    }
+
+    private fun getMovements(input: List<String>) = input.asSequence()
+        .map { it.split(" ", limit = 2) }
+        .flatMap { (direction, distance) ->
+            (1..distance.toInt())
+                .map { Movement(Direction.valueOf(direction)) }
+        }
+
+    interface Location {
+        val x: Int
+        val y: Int
+    }
+
+    data class HeadLocation(override val x: Int, override val y: Int) : Location {
         fun move(movement: Movement): HeadLocation = when (movement.direction) {
             Direction.U -> HeadLocation(x, y + 1)
             Direction.D -> HeadLocation(x, y - 1)
@@ -37,11 +58,11 @@ object Solution : AdventOfCodeSolution<Int>() {
         }
     }
 
-    data class TailLocation(val x: Int, val y: Int) {
-        fun follow(head: HeadLocation): TailLocation {
-            val dx = head.x - x
-            val dy = head.y - y
-            return TailLocation(x + moveBy(dx, dy), y + moveBy(dy, dx))
+    data class KnotLocation(override val x: Int, override val y: Int) : Location {
+        fun follow(previous: Location): KnotLocation {
+            val dx = previous.x - x
+            val dy = previous.y - y
+            return KnotLocation(x + moveBy(dx, dy), y + moveBy(dy, dx))
         }
 
         private fun moveBy(da: Int, db: Int): Int {
