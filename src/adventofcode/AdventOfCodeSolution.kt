@@ -2,18 +2,21 @@ package adventofcode
 
 private const val ENABLE_DEBUG = false
 
-abstract class AdventOfCodeSolution<TSolution>(private val debug: Boolean = ENABLE_DEBUG) {
-    open fun part1(input: List<String>): TSolution? {
+abstract class AdventOfCodeSolution<TSolution>(debug: Boolean = ENABLE_DEBUG) :
+    AdventOfCodeSolution2Part<TSolution, TSolution>(debug)
+
+abstract class AdventOfCodeSolution2Part<TPart1, TPart2>(private val debug: Boolean = ENABLE_DEBUG) {
+    open fun part1(input: List<String>): TPart1? {
         return null
     }
 
-    open fun part2(input: List<String>): TSolution? {
+    open fun part2(input: List<String>): TPart2? {
         return null
     }
 
     abstract fun solve()
 
-    fun solve(day: Int, expectedPart1Test: TSolution, expectedPart2Test: TSolution? = null) {
+    fun solve(day: Int, expectedPart1Test: TPart1, expectedPart2Test: TPart2? = null) {
         log("Day $day")
 
         val inputFile = "Day" + day.toString().padStart(2, '0')
